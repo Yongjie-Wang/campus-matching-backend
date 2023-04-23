@@ -9,6 +9,8 @@ import com.wang.partner.model.domain.User;
 import com.wang.partner.model.domain.request.UserLoginRequest;
 import com.wang.partner.model.domain.request.UserRegisterRequest;
 import com.wang.partner.service.UserService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,12 +29,14 @@ import static com.wang.partner.contant.UserConstant.USER_LOGIN_STATE;
  */
 @RestController
 @RequestMapping("/user")
+@Api(tags="用户控制层")
 public class UserController {
 
     @Resource
     private UserService userService;
 
     @PostMapping("/register")
+    @ApiOperation("用户注册接口")
     public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -49,6 +53,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
+    @ApiOperation("用户登入接口")
     public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if (userLoginRequest == null) {
             return ResultUtils.error(ErrorCode.PARAMS_ERROR);
@@ -63,6 +68,7 @@ public class UserController {
     }
 
     @PostMapping("/logout")
+    @ApiOperation("用户注销接口")
     public BaseResponse<Integer> userLogout(HttpServletRequest request) {
         if (request == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -72,6 +78,7 @@ public class UserController {
     }
 
     @GetMapping("/current")
+    @ApiOperation("获取用户信息接口")
     public BaseResponse<User> getCurrentUser(HttpServletRequest request) {
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
         User currentUser = (User) userObj;
@@ -86,6 +93,7 @@ public class UserController {
     }
 
     @GetMapping("/search")
+    @ApiOperation("用户搜寻接口")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
         if (!isAdmin(request)) {
            throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -100,6 +108,7 @@ public class UserController {
     }
 
     @PostMapping("/delete")
+    @ApiOperation("用户删除接口")
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
         if (!isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH);

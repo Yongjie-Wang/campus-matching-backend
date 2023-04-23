@@ -17,7 +17,9 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -176,16 +178,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if(CollectionUtils.isEmpty(tagNameList)){
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-
-
         return getUsersByMemory(tagNameList);
-
 //        通过sql查询
 //        return getUsersBySql(tagNameList);
 //        内存查询
-
-
-
     }
 //内存查询
     private List<User> getUsersByMemory(List<String> tagNameList) {
@@ -199,6 +195,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             }
             Set<String> tempTagNameSet = gson.fromJson(tagStr, new TypeToken<Set<String>>() {
             }.getType());
+            tempTagNameSet= Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
             for (String tagName : tagNameList) {
                 if (!tempTagNameSet.contains(tagName)) {
                     return false;
@@ -210,6 +207,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     }
 
     //    sql查询方法
+    @Deprecated
     private List<User> getUsersBySql(List<String> tagNameList) {
         QueryWrapper<User> queryWrapper=new QueryWrapper<>();
         for(String tagList: tagNameList){
