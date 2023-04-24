@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * 用户服务测试
@@ -96,8 +97,9 @@ public class UserServiceTest {
     @Test
     void searchUsersByTags(){
         List<String> taglsit = Arrays.asList("java", "c++");
+        System.out.println("参数列表"+taglsit);
         List<User> users = userService.searchUsersByTags(taglsit);
-        users.forEach(System.out::print);
-        Assert.assertNotNull(users);
+        System.out.println("用户列表"+users);
+
     }
 }

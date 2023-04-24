@@ -11,12 +11,15 @@ import com.wang.partner.model.domain.request.UserRegisterRequest;
 import com.wang.partner.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import net.bytebuddy.asm.Advice;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.wang.partner.contant.UserConstant.ADMIN_ROLE;
@@ -30,6 +33,7 @@ import static com.wang.partner.contant.UserConstant.USER_LOGIN_STATE;
 @RestController
 @RequestMapping("/user")
 @Api(tags="用户控制层")
+@CrossOrigin
 public class UserController {
 
     @Resource
@@ -119,6 +123,27 @@ public class UserController {
         boolean b = userService.removeById(id);
         return ResultUtils.success(b);
     }
+    /**
+     * 通过标签搜素用户
+     */
+    @GetMapping("/search/tags")
+    @ApiOperation("标签查询用户接口")
+    public BaseResponse<List<User>> deleteUser(@RequestParam(required = false) List<String> tagNameList) {
+        if(CollectionUtils.isEmpty(tagNameList)){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        List<User> userList = userService.searchUsersByTags(tagNameList);
+        userList.forEach(new Consumer<User>() {
+            @Override
+            public void accept(User user) {
+                System.out.println("user"+user);
+            }
+        });
+        return ResultUtils.success(userList);
+    }
+
+
+
 
     /**
      * 是否为管理员
@@ -132,5 +157,6 @@ public class UserController {
         User user = (User) userObj;
         return user != null && user.getUserRole() == ADMIN_ROLE;
     }
+
 
 }
