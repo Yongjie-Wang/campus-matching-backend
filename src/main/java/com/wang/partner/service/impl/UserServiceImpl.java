@@ -11,6 +11,7 @@ import com.wang.partner.service.UserService;
 import com.wang.partner.mapper.UserMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.expression.spel.ast.NullLiteral;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
@@ -25,6 +26,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static com.wang.partner.contant.UserConstant.ADMIN_ROLE;
 import static com.wang.partner.contant.UserConstant.USER_LOGIN_STATE;
 
 /**
@@ -126,7 +128,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = userMapper.selectOne(queryWrapper);
         // 用户不存在
         if (user == null) {
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"用户不存在");
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "用户不存在");
 
         }
         // 3. 用户脱敏
@@ -143,7 +145,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * @return
      */
     @Override
-    public User getSafetyUser(User originUser)  {
+    public User getSafetyUser(User originUser) {
         if (originUser == null) {
             return null;
         }
@@ -165,6 +167,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 用户注销
+     *
      * @param request
      */
     @Override
@@ -176,7 +179,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public List<User> searchUsersByTags(List<String> tagNameList) {
-        if(CollectionUtils.isEmpty(tagNameList)){
+        if (CollectionUtils.isEmpty(tagNameList)) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         return getUsersByMemory(tagNameList);
@@ -184,9 +187,56 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 //        return getUsersBySql(tagNameList);
 //        内存查询
     }
-//内存查询
+
+
+    //更新用户
+    @Override
+    public int updateUser(User user, User loginUser) {
+        long userId=user.getId();
+        if(userId<=0){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        if(!isAdmin(loginUser) && userId !=loginUser.getId()){
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        User userOld = userMapper.selectById(userId);
+        if(userOld == null){
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        return userMapper.updateById(user);
+    }
+
+    //获取登入用户
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        if (request == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        if(userObj==null){
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        return (User)userObj;
+    }
+
+    //鉴权
+    @Override
+    public boolean isAdmin(HttpServletRequest request) {
+
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
+        User user=(User)userObj;
+        return user!=null && user.getUserRole() ==ADMIN_ROLE;
+    }
+
+    //鉴权重载
+    @Override
+    public boolean isAdmin(User loginUser) {
+        return loginUser!=null && loginUser.getUserRole()==ADMIN_ROLE;
+    }
+
+    //内存查询
     private List<User> getUsersByMemory(List<String> tagNameList) {
-        QueryWrapper<User> queryWrapper=new QueryWrapper<>();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         List<User> userList = userMapper.selectList(null);
         Gson gson = new Gson();
         List<User> users = userList.stream().filter(user -> {
@@ -196,7 +246,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             }
             Set<String> tempTagNameSet = gson.fromJson(tagStr, new TypeToken<Set<String>>() {
             }.getType());
-            tempTagNameSet= Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
+            tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
             for (String tagName : tagNameList) {
                 if (!tempTagNameSet.contains(tagName)) {
                     return false;
@@ -210,9 +260,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     //    sql查询方法
     @Deprecated
     private List<User> getUsersBySql(List<String> tagNameList) {
-        QueryWrapper<User> queryWrapper=new QueryWrapper<>();
-        for(String tagList: tagNameList){
-            queryWrapper=queryWrapper.like("tags",tagList);
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        for (String tagList : tagNameList) {
+            queryWrapper = queryWrapper.like("tags", tagList);
         }
         List<User> userList = userMapper.selectList(queryWrapper);
         List<User> users = userList.stream().map(this::getSafetyUser).collect(Collectors.toList());

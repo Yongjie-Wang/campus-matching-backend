@@ -14,10 +14,6 @@ spring:
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
-  redis:
-    port: 6379
-    host: localhost
-    database: 0
 
   profiles:
     active: dev
@@ -25,6 +21,10 @@ server:
   port: 8080
   servlet:
     context-path: /api
+    session:
+      cookie:
+        domain: localhost
+
 mybatis-plus:
   configuration:
     map-underscore-to-camel-case: false

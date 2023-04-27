@@ -1,6 +1,7 @@
 package com.wang.partner.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.fasterxml.jackson.databind.ser.Serializers;
 import com.wang.partner.common.BaseResponse;
 import com.wang.partner.common.ErrorCode;
 import com.wang.partner.common.ResultUtils;
@@ -33,7 +34,6 @@ import static com.wang.partner.contant.UserConstant.USER_LOGIN_STATE;
 @RestController
 @RequestMapping("/user")
 @Api(tags="用户控制层")
-@CrossOrigin
 public class UserController {
 
     @Resource
@@ -99,7 +99,7 @@ public class UserController {
     @GetMapping("/search")
     @ApiOperation("用户搜寻接口")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
-        if (!isAdmin(request)) {
+        if (!userService.isAdmin(request)) {
            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -114,7 +114,7 @@ public class UserController {
     @PostMapping("/delete")
     @ApiOperation("用户删除接口")
     public BaseResponse<Boolean> deleteUser(@RequestBody long id, HttpServletRequest request) {
-        if (!isAdmin(request)) {
+        if (!userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         if (id <= 0) {
@@ -141,22 +141,16 @@ public class UserController {
         });
         return ResultUtils.success(userList);
     }
+    @PostMapping("/update")
+    public BaseResponse<Integer>updateUser(@RequestBody User user,HttpServletRequest request){
+//        验证参数是否为空
+        if(user ==null){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser=userService.getLoginUser(request);
+        int result=userService.updateUser(user,loginUser);
+        return ResultUtils.success(result);
 
 
-
-
-    /**
-     * 是否为管理员
-     *
-     * @param request
-     * @return
-     */
-    private boolean isAdmin(HttpServletRequest request) {
-        // 仅管理员可查询
-        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User user = (User) userObj;
-        return user != null && user.getUserRole() == ADMIN_ROLE;
     }
-
-
 }
