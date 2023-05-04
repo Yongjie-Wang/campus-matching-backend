@@ -1,6 +1,7 @@
 package com.wang.partner.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.fasterxml.jackson.databind.ser.Serializers;
 import com.wang.partner.common.BaseResponse;
 import com.wang.partner.common.ErrorCode;
@@ -97,7 +98,7 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    @ApiOperation("用户搜寻接口")
+    @ApiOperation("用户查询接口")
     public BaseResponse<List<User>> searchUsers(String username, HttpServletRequest request) {
         if (!userService.isAdmin(request)) {
            throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -150,7 +151,16 @@ public class UserController {
         User loginUser=userService.getLoginUser(request);
         int result=userService.updateUser(user,loginUser);
         return ResultUtils.success(result);
-
-
     }
+    /**
+     * 主页推荐
+     */
+    @GetMapping("/recommend")
+    public BaseResponse<Page<User>>recommendUser(long pageNum,long pageSize,HttpServletRequest request){
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        Page<User> userList=userService.page(new Page<>(pageNum,pageSize),queryWrapper);
+        return ResultUtils.success(userList);
+    }
+
+
 }
