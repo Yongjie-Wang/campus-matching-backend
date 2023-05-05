@@ -28,7 +28,6 @@ server:
   servlet:
     context-path: /api
     session:
-      cookie:
         domain: localhost
 
 mybatis-plus:

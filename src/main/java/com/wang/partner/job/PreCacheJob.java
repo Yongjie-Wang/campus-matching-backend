@@ -2,10 +2,13 @@ package com.wang.partner.job;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.sun.scenario.effect.impl.sw.sse.SSEBlend_SRC_OUTPeer;
 import com.wang.partner.model.domain.User;
 import com.wang.partner.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,6 +32,8 @@ public class PreCacheJob {
 
     @Resource
     private UserService userService;
+    @Resource
+    private RedissonClient redissonClient;
 
     @Resource
     private RedisTemplate<String, Object> redisTemplate;
@@ -37,18 +42,34 @@ public class PreCacheJob {
     private List<Long> mainUserList = Arrays.asList(1L);
 
     // 每天执行，预热推荐用户
-    @Scheduled(cron = "53 4 10 * * * ")   //自己设置时间测试
+    @Scheduled(cron = "12 29 19 * * * ")   //自己设置时间测试
     public void doCacheRecommendUser() {
-        //查数据库
-        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
-        Page<User> userPage = userService.page(new Page<>(1,20),queryWrapper);
-        String redisKey = String.format("shayu:user:recommend:%s",mainUserList);
-        ValueOperations valueOperations = redisTemplate.opsForValue();
-        //写缓存,30s过期
+//        建锁
+        RLock lock = redissonClient.getLock("shayu:precachejob:docache:lock");
+
         try {
-            valueOperations.set(redisKey,userPage,3000000, TimeUnit.MILLISECONDS);
+            if(lock.tryLock(0,-1,TimeUnit.MILLISECONDS)){
+                System.out.println("getLock:"+Thread.currentThread().getId());
+                //查数据库
+                QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+                Page<User> userPage = userService.page(new Page<>(1,20),queryWrapper);
+                String redisKey = String.format("shayu:user:recommend:%s",mainUserList);
+                ValueOperations valueOperations = redisTemplate.opsForValue();
+                //写缓存,30s过期
+                try {
+                    valueOperations.set(redisKey,userPage,3000000, TimeUnit.MILLISECONDS);
+                } catch (Exception e) {
+                    log.error("redis set key error",e);
+                }
+            }
+
         } catch (Exception e){
-            log.error("redis set key error",e);
+            log.error("doCacheRecommendUser error",e);
+        }finally {
+            if(lock.isHeldByCurrentThread()){
+                System.out.println("unlock: "+Thread.currentThread().getId());
+                lock.unlock();
+            }
         }
     }
 
