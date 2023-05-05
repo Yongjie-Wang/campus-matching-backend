@@ -1,5 +1,7 @@
 package com.wang.partner.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.wang.partner.mapper.UserMapper;
 import com.wang.partner.model.domain.User;
 import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
@@ -18,6 +20,8 @@ import java.util.function.Consumer;
  */
 @SpringBootTest
 public class UserServiceTest {
+    @Resource
+    private UserMapper userMapper;
 
     @Resource
     private UserService userService;
@@ -66,10 +70,10 @@ public class UserServiceTest {
 
     @Test
     void userRegister() {
-        String userAccount = "yupi";
-        String userPassword = "";
-        String checkPassword = "123456";
-        String planetCode = "1";
+        String userAccount = "wang1";
+        String userPassword = "12345678";
+        String checkPassword = "12345678";
+        String planetCode = "56";
         long result = userService.userRegister(userAccount, userPassword, checkPassword, planetCode);
         Assertions.assertEquals(-1, result);
         userAccount = "yu";
@@ -100,6 +104,18 @@ public class UserServiceTest {
         System.out.println("参数列表"+taglsit);
         List<User> users = userService.searchUsersByTags(taglsit);
         System.out.println("用户列表"+users);
+
+    }
+    @Test
+    void testLogin(){
+        String userAccount="wangbadan";
+        String encryptPassword="b0dd3697a192885d7c055db46155b26a";
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userAccount", userAccount);
+        queryWrapper.eq("userPassword", encryptPassword);
+        User user = userMapper.selectOne(queryWrapper);
+        System.out.println(user);
+
 
     }
 }
