@@ -149,6 +149,7 @@ public class UserController {
     }
 
     @PostMapping("/update")
+    @ApiOperation("更新用户接口")
     public BaseResponse<Integer> updateUser(@RequestBody User user, HttpServletRequest request) {
 //        验证参数是否为空
         if (user == null) {
@@ -163,6 +164,7 @@ public class UserController {
      * 主页推荐
      */
     @GetMapping("/recommend")
+    @ApiOperation("用户推荐接口")
     public BaseResponse<Page<User>> recommendUsers(long pageNum, long pageSize, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         String redisKey = String.format("shayu:user:recommend:%s" , loginUser.getId());
