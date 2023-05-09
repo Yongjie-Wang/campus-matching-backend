@@ -11,6 +11,7 @@ import com.wang.partner.model.domain.Team;
 import com.wang.partner.model.domain.User;
 import com.wang.partner.model.domain.request.TeamAddRequest;
 import com.wang.partner.model.domain.request.TeamJoinRequest;
+import com.wang.partner.model.domain.request.TeamQuitRequest;
 import com.wang.partner.model.domain.request.TeamUpdateRequest;
 import com.wang.partner.model.domain.vo.TeamUserVO;
 import com.wang.partner.service.TeamService;
@@ -57,12 +58,13 @@ public class TeamController {
     }
 
     @PostMapping("/delete")
-    @ApiOperation("队伍删除接口")
-    public BaseResponse<Boolean> deleteTeam(@RequestBody long id) {
+    @ApiOperation("队伍解散接口")
+    public BaseResponse<Boolean> deleteTeam(@RequestBody long id,HttpServletRequest request) {
         if (id <= 0) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        boolean result = teamService.removeById(id);
+        User loginUser = userService.getLoginUser(request);
+        boolean result = teamService.deleteTeam(id,loginUser);
         if (!result) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "删除失败");
         }
@@ -132,6 +134,24 @@ public class TeamController {
         }
         User loginUser = userService.getLoginUser(request);
         Boolean result = teamService.joinTeam(teamJoinRequest, loginUser);
+        return ResultUtils.success(result);
+
+    }
+
+    /**
+     * 队友退出
+     * @param teamJoinRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/quit")
+    @ApiOperation("退出队伍接口")
+    public BaseResponse<Boolean> teamJoin(@RequestBody TeamQuitRequest teamJoinRequest, HttpServletRequest request) {
+        if (teamJoinRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        Boolean result = teamService.quitTeam(teamJoinRequest, loginUser);
         return ResultUtils.success(result);
 
     }

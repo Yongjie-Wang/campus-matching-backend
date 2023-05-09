@@ -5,6 +5,7 @@ import com.wang.partner.model.domain.Team;
 import com.wang.partner.model.domain.User;
 import com.wang.partner.model.domain.dto.TeamQuery;
 import com.wang.partner.model.domain.request.TeamJoinRequest;
+import com.wang.partner.model.domain.request.TeamQuitRequest;
 import com.wang.partner.model.domain.request.TeamUpdateRequest;
 import com.wang.partner.model.domain.vo.TeamUserVO;
 
@@ -26,4 +27,8 @@ public interface TeamService extends IService<Team> {
     Boolean updateTeam(TeamUpdateRequest team, User loginUser);
 
     Boolean joinTeam(TeamJoinRequest teamJoinRequest, User loginUser);
+
+    Boolean quitTeam(TeamQuitRequest teamJoinRequest, User loginUser);
+
+    boolean deleteTeam(long id, User loginUser);
 }
