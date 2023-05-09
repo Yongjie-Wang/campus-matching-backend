@@ -1,4 +1,4 @@
-package com.wang.partner.dto;
+package com.wang.partner.model.domain.dto;
 
 import com.wang.partner.common.PageRequest;
 import lombok.Data;

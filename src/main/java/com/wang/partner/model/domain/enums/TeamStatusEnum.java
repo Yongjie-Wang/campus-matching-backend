@@ -1,4 +1,4 @@
-package com.wang.partner.enums;
+package com.wang.partner.model.domain.enums;
 
 /**
  * 队伍状态枚举

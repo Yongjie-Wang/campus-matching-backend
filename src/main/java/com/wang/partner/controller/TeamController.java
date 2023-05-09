@@ -5,11 +5,14 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wang.partner.common.BaseResponse;
 import com.wang.partner.common.ErrorCode;
 import com.wang.partner.common.ResultUtils;
-import com.wang.partner.dto.TeamQuery;
+import com.wang.partner.model.domain.dto.TeamQuery;
 import com.wang.partner.exception.BusinessException;
 import com.wang.partner.model.domain.Team;
 import com.wang.partner.model.domain.User;
 import com.wang.partner.model.domain.request.TeamAddRequest;
+import com.wang.partner.model.domain.request.TeamJoinRequest;
+import com.wang.partner.model.domain.request.TeamUpdateRequest;
+import com.wang.partner.model.domain.vo.TeamUserVO;
 import com.wang.partner.service.TeamService;
 import com.wang.partner.service.UserService;
 import io.swagger.annotations.Api;
@@ -42,51 +45,52 @@ public class TeamController {
 
     @PostMapping("/add")
     @ApiOperation("队伍添加接口")
-    public BaseResponse<Long> addTeam(@RequestBody TeamAddRequest teamAddRequest, HttpServletRequest request){
-        if (teamAddRequest == null){
+    public BaseResponse<Long> addTeam(@RequestBody TeamAddRequest teamAddRequest, HttpServletRequest request) {
+        if (teamAddRequest == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         User logininUser = userService.getLoginUser(request);
         Team team = new Team();
-        BeanUtils.copyProperties(teamAddRequest,team);
-        long teamId = teamService.addTeam(team,logininUser);
+        BeanUtils.copyProperties(teamAddRequest, team);
+        long teamId = teamService.addTeam(team, logininUser);
         return ResultUtils.success(teamId);
     }
 
     @PostMapping("/delete")
-    @ApiOperation("用户删除接口")
-    public BaseResponse<Boolean> deleteTeam(@RequestBody long id){
-        if (id <= 0){
+    @ApiOperation("队伍删除接口")
+    public BaseResponse<Boolean> deleteTeam(@RequestBody long id) {
+        if (id <= 0) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         boolean result = teamService.removeById(id);
-        if (!result){
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"删除失败");
+        if (!result) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "删除失败");
         }
         return ResultUtils.success(true);
     }
 
     @PostMapping("/update")
-    @ApiOperation("用户更新接口")
-    public BaseResponse<Boolean> updateTeam(@RequestBody Team team){
-        if (team == null){
+    @ApiOperation("队伍更新接口")
+    public BaseResponse<Boolean> updateTeam(@RequestBody TeamUpdateRequest team, HttpServletRequest request) {
+        if (team == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        boolean result = teamService.updateById(team);
-        if (!result){
-            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"更新失败");
+        User loginUser = userService.getLoginUser(request);
+        Boolean result = teamService.updateTeam(team, loginUser);
+        if (!result) {
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "更新失败");
         }
         return ResultUtils.success(true);
     }
 
     @GetMapping("/get")
     @ApiOperation("通过id获取队伍接口")
-    public BaseResponse<Team> getTeamById(long id){
-        if (id <= 0){
+    public BaseResponse<Team> getTeamById(long id) {
+        if (id <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         Team team = teamService.getById(id);
-        if (team == null){
+        if (team == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         return ResultUtils.success(team);
@@ -94,15 +98,15 @@ public class TeamController {
 
 
     @GetMapping("/list")
-    @ApiOperation("查询所有队伍接口")
-    public BaseResponse<List<Team>> listTeams(TeamQuery teamQuery) {
+    @ApiOperation("查询队伍接口")
+    public BaseResponse<List<TeamUserVO>> listTeams(TeamQuery teamQuery, HttpServletRequest request) {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        Team team = new Team();
-        BeanUtils.copyProperties(team, teamQuery);
-        QueryWrapper<Team> queryWrapper = new QueryWrapper<>(team);
-        List<Team> teamList = teamService.list(queryWrapper);
+        boolean isAdmin = userService.isAdmin(request);
+
+
+        List<TeamUserVO> teamList = teamService.listTeams(teamQuery, isAdmin);
         return ResultUtils.success(teamList);
     }
 
@@ -114,9 +118,21 @@ public class TeamController {
         }
         Team team = new Team();
         BeanUtils.copyProperties(teamQuery, team);
-        Page<Team> page = new Page<>(teamQuery.getPageNum(),teamQuery.getPageSize());
+        Page<Team> page = new Page<>(teamQuery.getPageNum(), teamQuery.getPageSize());
         QueryWrapper<Team> queryWrapper = new QueryWrapper<>(team);
-        Page<Team> resultPage = teamService.page(page,queryWrapper);
+        Page<Team> resultPage = teamService.page(page, queryWrapper);
         return ResultUtils.success(resultPage);
+    }
+
+    @PostMapping("/join")
+    @ApiOperation("队伍加入接口")
+    public BaseResponse<Boolean> teamJoin(@RequestBody TeamJoinRequest teamJoinRequest, HttpServletRequest request) {
+        if (teamJoinRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        Boolean result = teamService.joinTeam(teamJoinRequest, loginUser);
+        return ResultUtils.success(result);
+
     }
 }
