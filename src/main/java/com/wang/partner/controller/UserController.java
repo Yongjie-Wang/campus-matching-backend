@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
 import static com.wang.partner.contant.UserConstant.USER_LOGIN_STATE;
 
 /**
@@ -33,6 +34,7 @@ import static com.wang.partner.contant.UserConstant.USER_LOGIN_STATE;
  *
  * @author yupi
  */
+//@CrossOrigin(origins = {"http://localhost:3000"})
 @RestController
 @RequestMapping("/user")
 @Api(tags = "用户控制层")
@@ -167,21 +169,21 @@ public class UserController {
     @ApiOperation("用户推荐接口")
     public BaseResponse<Page<User>> recommendUsers(long pageNum, long pageSize, HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
-        String redisKey = String.format("shayu:user:recommend:%s" , loginUser.getId());
+        String redisKey = String.format("shayu:user:recommend:%s", loginUser.getId());
         ValueOperations valueOperations = redisTemplate.opsForValue();
         //        如果有缓存，直接读取
-      Page<User> userPage = (Page<User>)valueOperations.get(redisKey);
-      if(userPage != null){
-          return ResultUtils.success(userPage);
-      }
+        Page<User> userPage = (Page<User>) valueOperations.get(redisKey);
+        if (userPage != null) {
+            return ResultUtils.success(userPage);
+        }
 //        无缓存，查数据库
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         userPage = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
 //        存缓存
         try {
-            valueOperations.set(redisKey,userPage,3600, TimeUnit.SECONDS);
+            valueOperations.set(redisKey, userPage, 3600, TimeUnit.SECONDS);
         } catch (Exception e) {
-          log.error("redis set key error ",e);
+            log.error("redis set key error ", e);
         }
         return ResultUtils.success(userPage);
     }

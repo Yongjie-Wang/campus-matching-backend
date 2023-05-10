@@ -9,19 +9,16 @@ import com.wang.partner.exception.BusinessException;
 import com.wang.partner.model.domain.User;
 import com.wang.partner.service.UserService;
 import com.wang.partner.mapper.UserMapper;
+import com.wang.partner.utils.AlgorithmUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.expression.spel.ast.NullLiteral;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -192,15 +189,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     //更新用户
     @Override
     public int updateUser(User user, User loginUser) {
-        long userId=user.getId();
-        if(userId<=0){
+        long userId = user.getId();
+        if (userId <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        if(!isAdmin(loginUser) && userId !=loginUser.getId()){
+        if (!isAdmin(loginUser) && userId != loginUser.getId()) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
         User userOld = userMapper.selectById(userId);
-        if(userOld == null){
+        if (userOld == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         return userMapper.updateById(user);
@@ -213,10 +210,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        if(userObj==null){
+        if (userObj == null) {
             throw new BusinessException(ErrorCode.NO_AUTH);
         }
-        return (User)userObj;
+        return (User) userObj;
     }
 
     //鉴权
@@ -224,14 +221,57 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public boolean isAdmin(HttpServletRequest request) {
 
         Object userObj = request.getSession().getAttribute(USER_LOGIN_STATE);
-        User user=(User)userObj;
-        return user!=null && user.getUserRole() ==ADMIN_ROLE;
+        User user = (User) userObj;
+        return user != null && user.getUserRole() == ADMIN_ROLE;
     }
 
     //鉴权重载
     @Override
     public boolean isAdmin(User loginUser) {
-        return loginUser!=null && loginUser.getUserRole()==ADMIN_ROLE;
+        return loginUser != null && loginUser.getUserRole() == ADMIN_ROLE;
+    }
+
+    /**
+     * 推荐匹配用户
+     *
+     * @param num
+     * @param loginUser
+     * @return
+     */
+    @Override
+    public List<User> matchUsers(long num, User loginUser) {
+        List<User> userList = this.list();
+        String tags = loginUser.getTags();
+        Gson gson = new Gson();
+        List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {
+        }.getType());
+        System.out.println(tagList);
+        //用户列表的下标-》相似度
+        TreeMap<Integer, Long> indexDistanceMap = new TreeMap<>();
+        for (int i = 0; i < userList.size(); i++) {
+            User user = userList.get(i);
+            String userTags = user.getTags();
+            if (StringUtils.isBlank(userTags)){
+                continue;
+            }
+            List<String> userTagList = gson.fromJson(userTags, new TypeToken<List<String>>() {
+            }.getType());
+            long distance = AlgorithmUtils.minDistance(tagList, userTagList);
+            indexDistanceMap.put(i, distance);
+        }
+        //下面这个是打印前num个的id和分数
+        List<User> userListVo = new ArrayList<>();
+        int i = 0;
+        for (Map.Entry<Integer, Long> entry : indexDistanceMap.entrySet()) {
+            if (i > num) {
+                break;
+            }
+            User user = userList.get(entry.getKey());
+            System.out.println(user.getId() + ":" + entry.getKey() + ":" + entry.getValue());
+            userListVo.add(user);
+            i++;
+        }
+        return userListVo;
     }
 
     //内存查询

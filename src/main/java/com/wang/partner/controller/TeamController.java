@@ -5,17 +5,16 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wang.partner.common.BaseResponse;
 import com.wang.partner.common.ErrorCode;
 import com.wang.partner.common.ResultUtils;
+import com.wang.partner.model.domain.UserTeam;
 import com.wang.partner.model.domain.dto.TeamQuery;
 import com.wang.partner.exception.BusinessException;
 import com.wang.partner.model.domain.Team;
 import com.wang.partner.model.domain.User;
-import com.wang.partner.model.domain.request.TeamAddRequest;
-import com.wang.partner.model.domain.request.TeamJoinRequest;
-import com.wang.partner.model.domain.request.TeamQuitRequest;
-import com.wang.partner.model.domain.request.TeamUpdateRequest;
+import com.wang.partner.model.domain.request.*;
 import com.wang.partner.model.domain.vo.TeamUserVO;
 import com.wang.partner.service.TeamService;
 import com.wang.partner.service.UserService;
+import com.wang.partner.service.UserTeamService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +25,12 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-
+//@CrossOrigin(origins = {"http://localhost:3000"})
 @RestController
 @RequestMapping("/team")
 @Api(tags = "队伍控制层")
@@ -43,6 +45,8 @@ public class TeamController {
 
     @Resource
     private TeamService teamService;
+    @Resource
+    private UserTeamService userTeamService;
 
     @PostMapping("/add")
     @ApiOperation("队伍添加接口")
@@ -59,12 +63,13 @@ public class TeamController {
 
     @PostMapping("/delete")
     @ApiOperation("队伍解散接口")
-    public BaseResponse<Boolean> deleteTeam(@RequestBody long id,HttpServletRequest request) {
-        if (id <= 0) {
+    public BaseResponse<Boolean> deleteTeam(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
+        if (deleteRequest.getId() <= 0 || deleteRequest == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
+        long id=deleteRequest.getId();
         User loginUser = userService.getLoginUser(request);
-        boolean result = teamService.deleteTeam(id,loginUser);
+        boolean result = teamService.deleteTeam(id, loginUser);
         if (!result) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "删除失败");
         }
@@ -140,6 +145,7 @@ public class TeamController {
 
     /**
      * 队友退出
+     *
      * @param teamJoinRequest
      * @param request
      * @return
@@ -155,4 +161,56 @@ public class TeamController {
         return ResultUtils.success(result);
 
     }
+
+    /**
+     * 获取当前用户已加入的队友
+     */
+    @GetMapping("/list/my/create")
+    @ApiOperation("获取用户创建队友数接口")
+    public BaseResponse<List<TeamUserVO>> teamJoin(TeamQuery teamQuery, HttpServletRequest request) {
+        if (teamQuery == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        boolean isAdmin = userService.isAdmin(request);
+        teamQuery.setUserId(loginUser.getId());
+        List<TeamUserVO> teamList = teamService.listTeams(teamQuery, isAdmin);
+        return ResultUtils.success(teamList);
+    }
+
+    /**
+     * 获取当前用户已加入的队友
+     */
+    @GetMapping("/list/my/join")
+    @ApiOperation("获取用户加入队伍数接口")
+    public BaseResponse<List<TeamUserVO>> listMyJoinTeams(TeamQuery teamQuery, HttpServletRequest request) {
+        if (teamQuery == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User loginUser = userService.getLoginUser(request);
+        QueryWrapper<UserTeam> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("userId", loginUser.getId());
+        List<UserTeam> userTeamList = userTeamService.list(queryWrapper);
+        Map<Long, List<UserTeam>> listMap = userTeamList.stream().collect(Collectors.groupingBy(UserTeam::getTeamId));
+        ArrayList<Long> idList = new ArrayList<>(listMap.keySet());
+        teamQuery.setIdList(idList);
+        List<TeamUserVO> teamList = teamService.listTeams(teamQuery, true);
+        return ResultUtils.success(teamList);
+    }
+    /**
+     * 用户匹配接口
+     */
+    @GetMapping("/match")
+    public BaseResponse<List<User>> matchUsers(long  num,HttpServletRequest request){
+        if(num<=0 || num>20){
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User user = userService.getLoginUser(request);
+        return ResultUtils.success(userService.matchUsers(num,user));
+
+
+
+    }
+
+
 }

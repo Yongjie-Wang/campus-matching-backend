@@ -20,6 +20,7 @@ class PartnerApplicationTests {
     @Test
     void contextLoads() {
         String a="123";
+        a.equals("hello");
         a=new String("345");
 
         System.out.println(a);

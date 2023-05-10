@@ -14,6 +14,7 @@ import java.util.Date;
 @TableName(value = "user")
 @Data
 public class User implements Serializable {
+
     /**
      * id
      */
@@ -94,5 +95,6 @@ public class User implements Serializable {
     private String profile;
 
     @TableField(exist = false)
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -2597942582389955790L;
+
 }
