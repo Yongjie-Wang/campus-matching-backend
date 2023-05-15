@@ -29,25 +29,25 @@ public class InsertUsersTest {
     public void doInsertUser() {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        final int INSERT_NUM = 10000;
+        final int INSERT_NUM = 20;
         List<User> userList = new ArrayList<>();
         for (int i = 0; i < INSERT_NUM; i++) {
             User user = new User();
-            user.setUsername("假沙鱼");
-            user.setUserAccount("yusha");
-            user.setAvatarUrl("shanghai.myqcloud.com/shayu931/shayu.png");
+            user.setUsername("xiaowang");
+            user.setUserAccount("xiaowang");
+            user.setAvatarUrl("https://pic2.imgdb.cn/item/6437c9a60d2dde57775708a2.gif");
             user.setProfile("一条咸鱼");
             user.setGender(0);
-            user.setUserPassword("12345678");
+            user.setUserPassword("b0dd3697a192885d7c055db46155b26a");
             user.setPhone("123456789108");
-            user.setEmail("shayu-yusha@qq.com");
+            user.setEmail("303378464@qq.com");
             user.setUserStatus(0);
             user.setUserRole(0);
-            user.setPlanetCode("931");
-            user.setTags("[]");
+            user.setPlanetCode("123");
+            user.setTags("[\"Java\",\"C++\",\"Python\"]");
             userList.add(user);
         }
-        userService.saveBatch(userList, 500);
+        userService.saveBatch(userList, 5);
 
         stopWatch.stop();
         System.out.println("total time:" + stopWatch.getLastTaskTimeMillis());

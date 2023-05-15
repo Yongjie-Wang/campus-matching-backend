@@ -106,7 +106,8 @@ public class TeamController {
 
 
     @GetMapping("/list")
-    public BaseResponse<List<TeamUserVO>> listTeams(TeamQuery teamQuery, HttpServletRequest request) {
+    @ApiOperation("队伍列表接口")
+    public BaseResponse<List<TeamUserVO>> listTeams(TeamQuery teamQuery, HttpServletRequest request)  {
         if (teamQuery == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -128,6 +129,13 @@ public class TeamController {
                 team.setHasJoin(hasJoin);
             });
         } catch (Exception e) {}
+        // 3、查询已加入队伍的人数
+        QueryWrapper<UserTeam> userTeamJoinQueryWrapper = new QueryWrapper<>();
+        userTeamJoinQueryWrapper.in("teamId", teamIdList);
+        List<UserTeam> userTeamList = userTeamService.list(userTeamJoinQueryWrapper);
+        // 队伍 id => 加入这个队伍的用户列表
+        Map<Long, List<UserTeam>> teamIdUserTeamList = userTeamList.stream().collect(Collectors.groupingBy(UserTeam::getTeamId));
+        teamList.forEach(team -> team.setHasJoinNum(teamIdUserTeamList.getOrDefault(team.getId(), new ArrayList<>()).size()));
         return ResultUtils.success(teamList);
     }
 
@@ -212,19 +220,7 @@ public class TeamController {
         return ResultUtils.success(teamList);
     }
 
-    /**
-     * 用户匹配接口
-     */
-    @GetMapping("/match")
-    public BaseResponse<List<User>> matchUsers(long num, HttpServletRequest request) {
-        if (num <= 0 || num > 20) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User user = userService.getLoginUser(request);
-        return ResultUtils.success(userService.matchUsers(num, user));
 
-
-    }
 
 
 }
