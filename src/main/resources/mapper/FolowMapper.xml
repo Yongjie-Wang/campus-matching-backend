@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wang.partner.mapper.FollowMapper">
+
+    <resultMap id="BaseResultMap" type="com.wang.partner.model.domain.Follow">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="userId" column="user`
+
+
+            Id" jdbcType="INTEGER"/>
+            <result property="followId" column="followId" jdbcType="INTEGER"/>
+            <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+<!--    <sql id="Base_Column_List">-->
+<!--        id,userId,followId,-->
+<!--        createTime,updateTime,deleted-->
+<!--    </sql>-->
+    <select id="selectCommonFollow" resultType="com.wang.partner.model.domain.User">
+        select distinct f1.followId
+        from follow f1
+                 inner join follow f2 on f1.followId = f2.followId
+        where f1.userId = #{me}
+          and f2.userId = #{other}
+          and f2.isDelete = 0
+          and f1.isDelete = 0
+    </select>
+</mapper>
