@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wang.partner.mapper.SpaceMapper">
+
+    <resultMap id="BaseResultMap" type="com.wang.partner.model.domain.Space">
+        <id property="id" column="id" jdbcType="BIGINT"/>
+        <result property="userId" column="userId" jdbcType="INTEGER"/>
+        <result property="post" column="post" jdbcType="VARCHAR"/>
+        <result property="createTime" column="createTime" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="updateTime" jdbcType="TIMESTAMP"/>
+        <result property="isDelete" column="isDelete" jdbcType="BIGINT"/>
+    </resultMap>
+    <select id="selectAllFollowPosts" resultType="com.wang.partner.model.domain.vo.SpaceVO">
+        select s.id,
+               s.userId,
+               s.post,
+               s.createTime,
+               s.updateTime,
+               s.images,
+               s.bage,
+               u.username,
+               u.avatarUrl
+        from space as s  join user u on s.userId =  u.id
+        where  s.userId  in
+               <foreach collection="ids" item="id" open="(" close=")" separator=",">
+        #{id}
+    </foreach>
+        ORDER BY s.createTime DESC
+    </select>
+    <select id="selectAllPostsById" resultType="com.wang.partner.model.domain.vo.SpaceVO">
+            select s.id,
+            s.userId,
+            s.post,
+            s.createTime,
+            s.updateTime,
+            s.images,
+            s.bage,
+            u.username,
+            u.avatarUrl
+            from space as s  join user u on s.userId =  u.id
+            where  s.id  in
+            <foreach collection="set" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+            ORDER BY s.createTime DESC
+    </select>
+
+</mapper>
