@@ -25,9 +25,9 @@ spring:
   mail:
     host: smtp.qq.com
       # 你的QQ邮箱，这里为发件人，填自己的即可
-    username: 3033784564@qq.com
+    username: xxx033784564@qq.com
       # 你的QQ邮箱授权码
-    password: mwakcxlggtjedhbj
+    password: xxxxmakcxlggtjedhbj
 server:
   port: 8081
   servlet:
