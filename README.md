@@ -16,3 +16,15 @@
 通过以上亮点，该校园匹配平台实现了高性能、高可用性和用户友好的功能，为校园用户提供了便捷的交流和组队平台。
 
 ## 效果图
+![修改用户信息页面](https://gitlab.com/Yongjie-Wang/partner-matching-backend/-/raw/main/imgs/Snipaste_2023-07-02_11-16-54.png)
+![单聊页面](https://gitlab.com/Yongjie-Wang/partner-matching-backend/-/raw/main/imgs/Snipaste_2023-07-02_11-17-34.png)
+![群聊页面](https://gitlab.com/Yongjie-Wang/partner-matching-backend/-/raw/main/imgs/Snipaste_2023-07-02_11-32-07.png)
+![搜索页面](https://gitlab.com/Yongjie-Wang/partner-matching-backend/-/raw/main/imgs/Snipaste_2023-07-02_11-32-28.png)
+![个人空间页面](https://gitlab.com/Yongjie-Wang/partner-matching-backend/-/raw/main/imgs/Snipaste_2023-07-02_11-35-00.png)
+![在线用户页面](https://gitlab.com/Yongjie-Wang/partner-matching-backend/-/raw/main/imgs/Snipaste_2023-07-02_11-16-03.png)
+![公开队伍界面](https://gitlab.com/Yongjie-Wang/partner-matching-backend/-/raw/main/imgs/Snipaste_2023-07-02_11-16-12.png)
+![私密队伍界面](https://gitlab.com/Yongjie-Wang/partner-matching-backend/-/raw/main/imgs/Snipaste_2023-07-02_11-16-22.png)
+![用户信息页面](https://gitlab.com/Yongjie-Wang/partner-matching-backend/-/raw/main/imgs/Snipaste_2023-07-02_11-16-30.png)
+![关注对象页面](https://gitlab.com/Yongjie-Wang/partner-matching-backend/-/raw/main/imgs/Snipaste_2023-07-02_11-16-39.png)
+![登入页面](https://gitlab.com/Yongjie-Wang/partner-matching-backend/-/raw/main/imgs/login.png)
+![注册页面](https://gitlab.com/Yongjie-Wang/partner-matching-backend/-/raw/main/imgs/Snipaste_2023-07-02_11-14-38.png)
